@@ -24,10 +24,10 @@ class ProjectsService {
   }
 
   async update(projectData: UpdateProject): Promise<Project> {
-    const searchProject = await this.verifyProjectId(projectData.id);
+    await this.verifyProjectId(projectData.id);
     const newProjectData = await this.validateUpdateProject(projectData);
     const updatedProject = await this.prisma.project
-      .update({ where: { id: projectData.id }, data: { ...searchProject, ...newProjectData } })
+      .update({ where: { id: projectData.id }, data: newProjectData })
     return updatedProject;
   }
 
