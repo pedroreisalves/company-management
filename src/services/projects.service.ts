@@ -27,7 +27,7 @@ class ProjectsService {
     await this.verifyProjectId(projectData.id);
     const newProjectData = await this.validateUpdateProject(projectData);
     const updatedProject = await this.prisma.project
-      .update({ where: { id: projectData.id }, data: newProjectData })
+      .update({ where: { id: projectData.id }, data: newProjectData });
     return updatedProject;
   }
 
