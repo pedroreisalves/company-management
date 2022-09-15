@@ -1,9 +1,9 @@
 import { CreateProject, Project, UpdateProject } from './../types/project.type';
-import { PrismaClient } from '@prisma/client';
 import CustomError from '../errors/CustomError';
+import Prisma from '../database/prisma';
 
 class ProjectsService {
-  constructor(private readonly prisma = new PrismaClient()) {}
+  constructor(private readonly prisma = Prisma) {}
 
   getAll(): Promise<Project[]> {
     return this.prisma.project.findMany();
