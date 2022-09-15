@@ -1,0 +1,58 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Manager {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique
+  projects Project[]
+}
+
+model Project {
+  id        Int               @id @default(autoincrement())
+  title     String            @unique
+  budget    Float
+  priority  Priority          @default(LOW)
+  deadline  DateTime
+  manager   Manager?           @relation(fields: [idManager], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  idManager Int?
+  employees ProjectEmployee[]
+}
+
+model Department {
+  id        Int        @id @default(autoincrement())
+  name      String     @unique
+  employees Employee[]
+}
+
+model Employee {
+  id           Int               @id @default(autoincrement())
+  name         String            @unique
+  department   Department?        @relation(fields: [idDepartment], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  idDepartment Int?
+  projects     ProjectEmployee[]
+}
+
+model ProjectEmployee {
+  project    Project  @relation(fields: [idProject], references: [id], onDelete: Cascade)
+  idProject  Int
+  employee   Employee @relation(fields: [idEmployee], references: [id], onDelete: Cascade)
+  idEmployee Int
+  hourlyRate Float
+
+  @@id([idProject, idEmployee])
+}
+
+enum Priority {
+  HIGH
+  MEDIUM
+  LOW
+}
