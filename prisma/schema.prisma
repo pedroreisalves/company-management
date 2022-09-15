@@ -22,7 +22,7 @@ model Project {
   budget    Float
   priority  Priority          @default(LOW)
   deadline  DateTime
-  manager   Manager?           @relation(fields: [idManager], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  manager   Manager?          @relation(fields: [idManager], references: [id], onDelete: SetNull, onUpdate: Cascade)
   idManager Int?
   employees ProjectEmployee[]
 }
@@ -36,7 +36,7 @@ model Department {
 model Employee {
   id           Int               @id @default(autoincrement())
   name         String            @unique
-  department   Department?        @relation(fields: [idDepartment], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  department   Department?       @relation(fields: [idDepartment], references: [id], onDelete: SetNull, onUpdate: Cascade)
   idDepartment Int?
   projects     ProjectEmployee[]
 }

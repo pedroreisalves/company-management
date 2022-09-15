@@ -2,7 +2,7 @@ type IProject = {
   title: string
   budget: number
   priority: 'HIGH' | 'MEDIUM' | 'LOW'
-  deadline: string | Date
+  deadline: Date
 }
 
 export type Project = {
@@ -19,6 +19,6 @@ export type UpdateProject = {
   title?: string
   budget?: number
   priority?: 'HIGH' | 'MEDIUM' | 'LOW'
-  deadline?: string | Date
+  deadline?: Date
   idManager?: number | null
 };

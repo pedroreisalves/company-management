@@ -15,7 +15,6 @@ class ProjectsService {
   }
 
   async create(projectData: CreateProject): Promise<Project> {
-    projectData.deadline = new Date(projectData.deadline);
     await this.verifyManagerId(projectData.idManager);
     const newProject = await this.prisma
       .project.create({ data: { ...projectData } });
@@ -24,9 +23,6 @@ class ProjectsService {
 
   async update({ id, ...projectData }: UpdateProject): Promise<Project> {
     const searchProject = await this.verifyProjectId(id);
-    if (projectData.deadline) {
-      projectData.deadline = new Date(projectData.deadline);
-    }
     if (projectData.idManager) {
       await this.verifyManagerId(projectData.idManager);
     }
