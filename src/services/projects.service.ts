@@ -16,28 +16,38 @@ class ProjectsService {
 
   async create(projectData: CreateProject): Promise<Project> {
     await this.verifyManagerId(projectData.idManager);
+    await this.verifyProjectTitle(projectData.title);
+    projectData.deadline = new Date(projectData.deadline);
     const newProject = await this.prisma
       .project.create({ data: { ...projectData } });
     return newProject; 
   }
 
-  async update({ id, ...projectData }: UpdateProject): Promise<Project> {
-    const searchProject = await this.verifyProjectId(id);
-    if (projectData.idManager) {
-      await this.verifyManagerId(projectData.idManager);
-    }
+  async update(projectData: UpdateProject): Promise<Project> {
+    const searchProject = await this.verifyProjectId(projectData.id);
+    const newProjectData = await this.validateUpdateProject(projectData);
     const updatedProject = await this.prisma.project
-      .update({ where: { id }, data: { ...searchProject, ...projectData } })
+      .update({ where: { id: projectData.id }, data: { ...searchProject, ...newProjectData } })
     return updatedProject;
   }
 
   async delete(id: number): Promise<Project> {
-    const searchProject = await this.prisma.project.findUnique({ where: { id } });
-    if (!searchProject) {
-      throw new CustomError(404, 'NOT_FOUND', 'Project not found');
-    }
+    await this.verifyProjectId(id);
     const deletedProject = await this.prisma.project.delete({ where: { id } });
     return deletedProject;
+  }
+
+  private async validateUpdateProject(projectData: UpdateProject) {
+    if (projectData.idManager) {
+      await this.verifyManagerId(projectData.idManager);
+    }
+    if (projectData.title) {
+      await this.verifyProjectTitle(projectData.title);
+    }
+    if (projectData.deadline) {
+      projectData.deadline = new Date(projectData.deadline);
+    }
+    return projectData;
   }
 
   private async verifyManagerId(id: number) {
@@ -52,6 +62,14 @@ class ProjectsService {
     const project = await this.prisma.project.findUnique({ where: { id } });
     if (!project) {
       throw new CustomError(404, 'NOT_FOUND', 'Project not found');
+    }
+    return project;
+  }
+
+  private async verifyProjectTitle(title: string) {
+    const project = await this.prisma.project.findUnique({ where: { title } });
+    if (project) {
+      throw new CustomError(401, 'UNAUTHORIZED', 'A project with that title already exists');
     }
     return project;
   }
