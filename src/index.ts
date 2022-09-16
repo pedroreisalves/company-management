@@ -6,6 +6,7 @@ import loginRoute from './routes/login.route';
 import managersRoute from './routes/managers.route';
 import employeesRoute from './routes/employees.route';
 import departmentsRoute from './routes/departments.route';
+import authToken from './middlewares/auth-token.middleware';
 
 const app = express();
 
@@ -14,6 +15,8 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 
 app.use('/login', loginRoute);
+
+app.use(authToken);
 
 app.use('/projects', projectsRoute);
 
