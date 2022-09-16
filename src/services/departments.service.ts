@@ -1,4 +1,8 @@
-import { CreateDepartment, Department, UpdateDepartment } from "./../types/department.type";
+import {
+  CreateDepartment,
+  Department,
+  UpdateDepartment,
+} from "./../types/department.type";
 import Prisma from "../database/prisma";
 import CustomError from "../errors/CustomError";
 
@@ -27,14 +31,18 @@ class DepartmentsService {
   async update(departmentData: UpdateDepartment) {
     await this.verifyDepartmentId(departmentData.id);
     await this.verifyDepartmentName(departmentData.name);
-    const updatedDepartment = await this.prisma.department
-      .update({ where: { id: departmentData.id }, data: departmentData });
+    const updatedDepartment = await this.prisma.department.update({
+      where: { id: departmentData.id },
+      data: departmentData,
+    });
     return updatedDepartment;
   }
 
   async delete(id: number) {
     await this.verifyDepartmentId(id);
-    const deletedDepartment = await this.prisma.department.delete({ where: { id } });
+    const deletedDepartment = await this.prisma.department.delete({
+      where: { id },
+    });
     return deletedDepartment;
   }
 
@@ -50,7 +58,9 @@ class DepartmentsService {
   }
 
   private async verifyDepartmentName(name: string) {
-    const department = await this.prisma.department.findUnique({ where: { name } });
+    const department = await this.prisma.department.findUnique({
+      where: { name },
+    });
     if (department) {
       throw new CustomError(
         401,

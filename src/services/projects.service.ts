@@ -1,12 +1,25 @@
-import { CreateProject, Project, UpdateProject } from './../types/project.type';
-import CustomError from '../errors/CustomError';
-import Prisma from '../database/prisma';
+import { CreateProject, Project, UpdateProject } from "./../types/project.type";
+import CustomError from "../errors/CustomError";
+import Prisma from "../database/prisma";
 
 class ProjectsService {
   constructor(private readonly prisma = Prisma) {}
 
   getAll(): Promise<Project[]> {
-    return this.prisma.project.findMany();
+    return this.prisma.project.findMany({ include: {
+      employees: {
+        select: {
+          hourlyRate: true,
+          employee: { select: { id: true, name: true, idDepartment: true } },
+        },
+      },
+      manager: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    } });
   }
 
   async getById(id: number): Promise<Project> {
@@ -18,16 +31,19 @@ class ProjectsService {
     await this.verifyManagerId(projectData.idManager);
     await this.verifyProjectTitle(projectData.title);
     projectData.deadline = new Date(projectData.deadline);
-    const newProject = await this.prisma
-      .project.create({ data: { ...projectData } });
-    return newProject; 
+    const newProject = await this.prisma.project.create({
+      data: { ...projectData },
+    });
+    return newProject;
   }
 
   async update(projectData: UpdateProject): Promise<Project> {
     await this.verifyProjectId(projectData.id);
     const newProjectData = await this.validateUpdateProject(projectData);
-    const updatedProject = await this.prisma.project
-      .update({ where: { id: projectData.id }, data: newProjectData });
+    const updatedProject = await this.prisma.project.update({
+      where: { id: projectData.id },
+      data: newProjectData,
+    });
     return updatedProject;
   }
 
@@ -53,15 +69,31 @@ class ProjectsService {
   private async verifyManagerId(id: number) {
     const manager = await this.prisma.manager.findUnique({ where: { id } });
     if (!manager) {
-      throw new CustomError(404, 'NOT_FOUND', 'Manager not found');
+      throw new CustomError(404, "NOT_FOUND", "Manager not found");
     }
     return manager;
   }
 
   private async verifyProjectId(id: number) {
-    const project = await this.prisma.project.findUnique({ where: { id } });
+    const project = await this.prisma.project.findUnique({
+      where: { id },
+      include: {
+        employees: {
+          select: {
+            hourlyRate: true,
+            employee: { select: { id: true, name: true, idDepartment: true } },
+          },
+        },
+        manager: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
     if (!project) {
-      throw new CustomError(404, 'NOT_FOUND', 'Project not found');
+      throw new CustomError(404, "NOT_FOUND", "Project not found");
     }
     return project;
   }
@@ -69,7 +101,11 @@ class ProjectsService {
   private async verifyProjectTitle(title: string) {
     const project = await this.prisma.project.findUnique({ where: { title } });
     if (project) {
-      throw new CustomError(401, 'UNAUTHORIZED', 'A project with that title already exists');
+      throw new CustomError(
+        401,
+        "UNAUTHORIZED",
+        "A project with that title already exists"
+      );
     }
     return project;
   }
