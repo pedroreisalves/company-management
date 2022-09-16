@@ -11,10 +11,10 @@ departmentsRoute.get('/:id', departmentsController.getById);
 
 departmentsRoute.patch('/:id', authUpdateDepartment, departmentsController.update);
 
-departmentsRoute.delete('/:id', authCreateDepartment, departmentsController.delete);
+departmentsRoute.delete('/:id', departmentsController.delete);
 
 departmentsRoute.get('/', departmentsController.getAll);
 
-departmentsRoute.post('/', departmentsController.create);
+departmentsRoute.post('/', authCreateDepartment, departmentsController.create);
 
 export default departmentsRoute;
