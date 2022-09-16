@@ -1,6 +1,11 @@
 import Prisma from "../database/prisma";
 import CustomError from "../errors/CustomError";
-import { CreateEmployee, UpdateEmployee } from "./../types/employee.type";
+import {
+  CreateEmployee,
+  UpdateEmployee,
+  CreateProjectEmployee,
+  UpdateProjectEmployee,
+} from "./../types/employee.type";
 
 class EmployeesService {
   constructor(private readonly prisma = Prisma) {}
@@ -46,12 +51,104 @@ class EmployeesService {
     return deletedUser;
   }
 
+  async createProjectEmployee(data: CreateProjectEmployee) {
+    await this.verifyEmployeeId(data.idEmployee);
+    await this.verifyProjectId(data.idProject);
+    const isAssociated = await this.verifyRelationEmployeeProject(
+      data.idEmployee,
+      data.idProject
+    );
+    if (isAssociated) {
+      throw new CustomError(
+        401,
+        "UNAUTHORIZED",
+        "These ids are already associated"
+      );
+    }
+    await this.prisma.projectEmployee.create({ data });
+    return data;
+  }
+
+  async updateProjectEmployee(data: UpdateProjectEmployee) {
+    await this.verifyEmployeeId(data.idEmployee);
+    await this.verifyProjectId(data.idProject);
+    const isAssociated = await this.verifyRelationEmployeeProject(
+      data.idEmployee,
+      data.idProject
+    );
+    if (!isAssociated) {
+      throw new CustomError(
+        401,
+        "UNAUTHORIZED",
+        "These ids are not associated"
+      );
+    }
+    await this.prisma.projectEmployee.update({
+      where: {
+        idProject_idEmployee: {
+          idEmployee: data.idEmployee,
+          idProject: data.idProject,
+        },
+      },
+      data,
+    });
+    return data;
+  }
+
+  async deleteProjectEmployee(idEmployee: number, idProject: number) {
+    await this.verifyEmployeeId(idEmployee);
+    await this.verifyProjectId(idProject);
+    const isAssociated = await this.verifyRelationEmployeeProject(
+      idEmployee,
+      idProject
+    );
+    if (!isAssociated) {
+      throw new CustomError(
+        401,
+        "UNAUTHORIZED",
+        "These ids are not associated"
+      );
+    }
+    const deletedProjectEmployee = await this.prisma.projectEmployee.delete({
+      where: {
+        idProject_idEmployee: {
+          idEmployee: idEmployee,
+          idProject: idProject,
+        },
+      },
+    });
+    return deletedProjectEmployee;
+  }
+
+  private async verifyRelationEmployeeProject(
+    idEmployee: number,
+    idProject: number
+  ) {
+    const projectEmployee = await this.prisma.projectEmployee.findUnique({
+      where: {
+        idProject_idEmployee: {
+          idEmployee: idEmployee,
+          idProject: idProject,
+        },
+      },
+    });
+    return projectEmployee;
+  }
+
   private async verifyEmployeeId(id: number) {
     const employee = await this.prisma.employee.findUnique({ where: { id } });
     if (!employee) {
       throw new CustomError(404, "NOT_FOUND", "Employee not found");
     }
     return employee;
+  }
+
+  private async verifyProjectId(id: number) {
+    const project = await this.prisma.project.findUnique({ where: { id } });
+    if (!project) {
+      throw new CustomError(404, "NOT_FOUND", "Project not found");
+    }
+    return project;
   }
 
   private async verifyDepartmentId(id: number) {
